@@ -5,6 +5,11 @@ export interface DebounceOptions {
   @default false
   */
   readonly before?: boolean;
+
+  /**
+   * Execute `function_` unless a previous call is still pending, in which case, return the pending promise. Useful, for example, to avoid processing extra button clicks if the previous one is not complete.
+   */
+  readonly waitForPromise?: boolean;
 }
 
 /**
@@ -30,15 +35,35 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
   wait: number,
   options: DebounceOptions = {}
 ) {
+  // Validate options
   if (!Number.isFinite(wait)) {
     throw new TypeError('Expected `wait` to be a finite number')
   }
 
-  let leadingValue
-  let timeout
-  let resolveList = []
+  // Only used with options.before enabled
+  let leadingValue: PromiseLike<ReturnType> | ReturnType
 
-  return function (...arguments_) {
+  // Debounce timeout handle
+  let timeout: NodeJS.Timeout
+
+  // Promises to be resolved when debounce if finished
+  let resolveList: Array<(unknown) => void> = []
+
+  let currentPromise: Promise<ReturnType>
+
+  const applyFn = async (_this, args) => {
+    currentPromise = _applyPromised(fn, _this, args)
+    if (options.waitForPromise) {
+      currentPromise.finally(() => { currentPromise = null })
+    }
+    return currentPromise
+  }
+
+  return function (...args) {
+    if (options.waitForPromise && currentPromise) {
+      return currentPromise
+    }
+
     return new Promise((resolve) => {
       const shouldCallNow = options.before && !timeout
 
@@ -47,17 +72,16 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
       timeout = setTimeout(() => {
         timeout = null
 
-        const result = options.before ? leadingValue : fn.apply(this, arguments_)
-
-        for (resolve of resolveList) {
-          resolve(result)
+        const result = options.before ? leadingValue : applyFn(this, args)
+        for (const _resolve of resolveList) {
+          _resolve(result)
         }
 
         resolveList = []
       }, wait)
 
       if (shouldCallNow) {
-        leadingValue = fn.apply(this, arguments_)
+        leadingValue = applyFn(this, args)
         resolve(leadingValue)
       } else {
         resolveList.push(resolve)
@@ -66,41 +90,6 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
   }
 }
 
-/**
-Execute `function_` unless a previous call is still pending, in which case, return the pending promise. Useful, for example, to avoid processing extra button clicks if the previous one is not complete.
-@param function_ - Promise-returning/async function to debounce.
-@example
-```
-import {setTimeout as delay} from 'timers/promises';
-import pDebounce from 'p-debounce';
-const expensiveCall = async value => {
-  await delay(200);
-  return value;
-}
-const debouncedFn = pDebounce.promise(expensiveCall);
-for (const number of [1, 2, 3]) {
-  console.log(await debouncedFn(number));
-}
-//=> 1
-//=> 2
-//=> 3
-```
-*/
-export function debouncePromise<ArgumentsType extends unknown[], ReturnType> (
-  function_: (...args: ArgumentsType) => PromiseLike<ReturnType> | ReturnType
-): (...args: ArgumentsType) => Promise<ReturnType> {
-  let currentPromise
-
-  return async function (...arguments_) {
-    if (currentPromise) {
-      return currentPromise
-    }
-
-    try {
-      currentPromise = function_.apply(this, arguments_)
-      return await currentPromise
-    } finally {
-      currentPromise = undefined
-    }
-  }
+async function _applyPromised (fn: Function, _this: unknown, args: any[]) {
+  return await fn.apply(_this, args)
 }
