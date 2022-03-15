@@ -158,7 +158,7 @@ Resolves:  R=1         R=1         R=1        R=3         R=3         R=5
   expect(resolvedResults).toMatchObject([1, 1, 1, 3, 3, 5])
 })
 
-test.concurrent.skip('wait for promise (leading: true)', async () => {
+test.concurrent('wait for promise (leading: true)', async () => {
   const results = []
 
   /*
@@ -167,7 +167,7 @@ Debounced: +++++++----++++++------++++++-----++++++------++++++------++++++-----
 Calls:     C(1)        C(2)        C(3)       C(4)        C(5)        C(6)
 Promise:   [           (1)          ][         (2)        ][          (4)          ][     (6)       ]
 Trailing:              T=2         T=3         T=4        T=5.........T=6
-Resolves:  R=1         R=1         R=1        R=3         R=4         R=4
+Resolves:  R=1         R=1         R=2        R=2         R=4         R=4
 */
 
   const EXEC_MS = 100
@@ -193,5 +193,5 @@ Resolves:  R=1         R=1         R=1        R=3         R=4         R=4
   // console.log('Resolved results:', resolvedResults)
 
   expect(results).toMatchObject([1, 2, 4, 6])
-  expect(resolvedResults).toMatchObject([1, 1, 1, 3, 4, 4])
+  expect(resolvedResults).toMatchObject([1, 1, 2, 2, 4, 4])
 })
