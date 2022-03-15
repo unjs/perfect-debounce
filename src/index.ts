@@ -12,6 +12,10 @@ export interface DebounceOptions {
   readonly waitForPromise?: boolean;
 }
 
+const DEBOUNCE_DEFAULTS: DebounceOptions = {
+  waitForPromise: true
+}
+
 /**
 [Debounce](https://css-tricks.com/debouncing-throttling-explained-examples/) promise-returning & async functions.
 @param fn - Promise-returning/async function to debounce.
@@ -36,6 +40,7 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
   options: DebounceOptions = {}
 ) {
   // Validate options
+  options = { ...DEBOUNCE_DEFAULTS, ...options }
   if (!Number.isFinite(wait)) {
     throw new TypeError('Expected `wait` to be a finite number')
   }

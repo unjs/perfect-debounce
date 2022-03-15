@@ -85,8 +85,8 @@ test.concurrent('fn takes longer than wait', async () => {
 
   const results = await Promise.all([...promiseSetOne, ...promiseSetTwo])
 
-  expect(results).toMatchObject([3, 3, 3, 6, 6, 6])
-  expect(count).toBe(2)
+  expect(results).toMatchObject([3, 3, 3, 3, 3, 3])
+  expect(count).toBe(1)
 })
 
 // Factory to create a separate class for each test below
