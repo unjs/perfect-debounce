@@ -20,7 +20,7 @@ const DEBOUNCE_DEFAULTS: DebounceOptions = {
 /**
 Debounce functions
 @param fn - Promise-returning/async function to debounce.
-@param wait - Milliseconds to wait before calling `fn`.
+@param wait - Milliseconds to wait before calling `fn`. Default value is 25ms
 @returns A function that delays calling `fn` until after `wait` milliseconds have elapsed since the last time it was called.
 @example
 ```
@@ -37,7 +37,7 @@ for (const number of [1, 2, 3]) {
 */
 export function debounce <ArgumentsType extends unknown[], ReturnType> (
   fn: (...args: ArgumentsType) => PromiseLike<ReturnType> | ReturnType,
-  wait: number,
+  wait: number = 25,
   options: DebounceOptions = {}
 ) {
   // Validate options
