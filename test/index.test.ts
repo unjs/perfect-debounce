@@ -86,7 +86,7 @@ test.concurrent('fn takes longer than wait', async () => {
   const results = await Promise.all([...promiseSetOne, ...promiseSetTwo])
 
   expect(results).toMatchObject([3, 3, 3, 3, 3, 3])
-  expect(count).toBe(1)
+  expect(count).toBe(2)
 })
 
 // Factory to create a separate class for each test below
@@ -123,24 +123,28 @@ test.concurrent('`this` is preserved ', async () => {
 test.concurrent('waitForPromise', async () => {
   const results = []
 
-  const EXEC_MS = 200
-  const DEBOUNCE_MS = 50
-  const REPEAT_MS = 100
+  const EXEC_MS = 100
+  const DEBOUNCE_MS = 25
+  const REPEAT_MS = 50
 
   const debounced = debounce(async (value) => {
     await delay(EXEC_MS)
     results.push(value)
     return value
-  }, DEBOUNCE_MS, { waitForPromise: true })
+  }, DEBOUNCE_MS)
 
   const promises = []
-  for (const i of [1, 2, 3, 4, 5]) {
+  for (const i of [1, 2, 3, 4, 5, 6]) {
     promises.push(debounced(i))
     await delay(REPEAT_MS)
   }
   const resolvedResults = await Promise.all(promises)
 
-  console.log('Results:', results)
-  console.log('Resolved results:', resolvedResults)
-  // expect(results).toMatchObject([5])
+  await delay(EXEC_MS)
+
+  // console.log('Results:', results)
+  // console.log('Resolved results:', resolvedResults)
+
+  expect(results).toMatchObject([1, 3, 5, 6])
+  expect(resolvedResults).toMatchObject([1, 1, 1, 3, 3, 5])
 })

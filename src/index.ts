@@ -5,15 +5,9 @@ export interface DebounceOptions {
   @default false
   */
   readonly before?: boolean;
-
-  /**
-   * Execute `function_` unless a previous call is still pending, in which case, return the pending promise. Useful, for example, to avoid processing extra button clicks if the previous one is not complete.
-   */
-  readonly waitForPromise?: boolean;
 }
 
 const DEBOUNCE_DEFAULTS: DebounceOptions = {
-  waitForPromise: true
 }
 
 /**
@@ -54,21 +48,30 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
   // Promises to be resolved when debounce if finished
   let resolveList: Array<(val: unknown) => void> = []
 
+  // Keep state of currently resolving promise
   let currentPromise: Promise<ReturnType>
+
+  // Trailing call info
+  let trailingArgs: any[]
 
   const applyFn = async (_this, args) => {
     currentPromise = _applyPromised(fn, _this, args)
-    if (options.waitForPromise) {
-      currentPromise.finally(() => { currentPromise = null })
-    }
+    currentPromise.finally(() => {
+      currentPromise = null
+      if (trailingArgs && !timeout) {
+        const _trailingArgs = trailingArgs
+        trailingArgs = null
+        return applyFn(_this, _trailingArgs)
+      }
+    })
     return currentPromise
   }
 
   return function (...args) {
-    if (options.waitForPromise && currentPromise) {
+    if (currentPromise && !timeout) {
+      trailingArgs = args
       return currentPromise
     }
-
     return new Promise((resolve) => {
       const shouldCallNow = options.before && !timeout
 
