@@ -35,8 +35,8 @@ for (const number of [1, 2, 3]) {
 //=> 3
 ```
 */
-export function debounce <ArgumentsType extends unknown[], ReturnType> (
-  fn: (...args: ArgumentsType) => PromiseLike<ReturnType> | ReturnType,
+export function debounce <ArgumentsT extends unknown[], ReturnT> (
+  fn: (...args: ArgumentsT) => PromiseLike<ReturnT> | ReturnT,
   wait: number = 25,
   options: DebounceOptions = {}
 ) {
@@ -47,7 +47,7 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
   }
 
   // Last result for leading value
-  let leadingValue
+  let leadingValue: PromiseLike<ReturnT> | ReturnT;
 
   // Debounce timeout handle
   let timeout: NodeJS.Timeout
@@ -56,7 +56,7 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
   let resolveList: Array<(val: unknown) => void> = []
 
   // Keep state of currently resolving promise
-  let currentPromise: Promise<ReturnType>
+  let currentPromise: Promise<ReturnT>
 
   // Trailing call info
   let trailingArgs: any[]
@@ -75,14 +75,14 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
     return currentPromise
   }
 
-  return function (...args) {
+  return function (...args: ArgumentsT) {
     if (currentPromise) {
       if (options.trailing) {
         trailingArgs = args
       }
       return currentPromise
     }
-    return new Promise((resolve) => {
+    return new Promise<ReturnT>((resolve) => {
       const shouldCallNow = !timeout && options.leading
 
       clearTimeout(timeout)
