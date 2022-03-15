@@ -46,13 +46,13 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
   }
 
   // Only used with options.before enabled
-  let leadingValue: PromiseLike<ReturnType> | ReturnType
+  let leadingValue
 
   // Debounce timeout handle
   let timeout: NodeJS.Timeout
 
   // Promises to be resolved when debounce if finished
-  let resolveList: Array<(unknown) => void> = []
+  let resolveList: Array<(val: unknown) => void> = []
 
   let currentPromise: Promise<ReturnType>
 
