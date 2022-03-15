@@ -1,0 +1,41 @@
+{
+  "name": "perfect-debounce",
+  "version": "0.0.0",
+  "description": "",
+  "repository": "unjs/perfect-debounce",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "vitest dev",
+    "lint": "eslint --ext .ts,.js,.mjs,.cjs .",
+    "prepack": "unbuild",
+    "release": "yarn test && standard-version && git push --follow-tags && npm publish",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@nuxtjs/eslint-config-typescript": "latest",
+    "c8": "latest",
+    "eslint": "latest",
+    "in-range": "^3.0.0",
+    "standard-version": "latest",
+    "time-span": "^5.0.0",
+    "typescript": "latest",
+    "unbuild": "latest",
+    "vitest": "latest"
+  }
+}
