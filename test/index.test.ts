@@ -51,7 +51,7 @@ test.concurrent('leading option', async () => {
 
   await delay(200)
   expect(await debounced(5)).toBe(5)
-  expect(await debounced(6)).toBe(6)
+  expect(await debounced(6)).toBe(5)
 })
 
 test.concurrent('before option - does not call input function after timeout', async () => {
@@ -124,12 +124,12 @@ test.concurrent('wait for promise', async () => {
   const results = []
 
   /*
+Time:      000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---400-----> (ms)
+Debounced: +++++++----++++++------++++++-----++++++------++++++------++++++--------------------------------
 Calls:     C(1)        C(2)        C(3)       C(4)        C(5)        C(6)
-Resolves:  R=1         R=1         R=1        R=3         R=3         R=5
-Time (ms): 000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---->
-Debounced: +++++++------++++++------++++++-----++++++------++++++------++++++------------------------
 Promise:         [           (1)          ][         (3)         ][         (5)          ][  (6)
 Trailing:              T=2          T=3        T=4         T=5        T=6
+Resolves:  R=1         R=1         R=1        R=3         R=3         R=5
 */
 
   const EXEC_MS = 100
@@ -156,4 +156,42 @@ Trailing:              T=2          T=3        T=4         T=5        T=6
 
   expect(results).toMatchObject([1, 3, 5, 6])
   expect(resolvedResults).toMatchObject([1, 1, 1, 3, 3, 5])
+})
+
+test.concurrent.skip('wait for promise (leading: true)', async () => {
+  const results = []
+
+  /*
+Time:      000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---400-----> (ms)
+Debounced: +++++++----++++++------++++++-----++++++------++++++------++++++--------------------------------
+Calls:     C(1)        C(2)        C(3)       C(4)        C(5)        C(6)
+Promise:   [           (1)          ][         (2)        ][          (4)          ][     (6)       ]
+Trailing:              T=2         T=3         T=4        T=5.........T=6
+Resolves:  R=1         R=1         R=1        R=3         R=4         R=4
+*/
+
+  const EXEC_MS = 100
+  const DEBOUNCE_MS = 25
+  const REPEAT_MS = 50
+
+  const debounced = debounce(async (value) => {
+    await delay(EXEC_MS)
+    results.push(value)
+    return value
+  }, DEBOUNCE_MS, { leading: true })
+
+  const promises = []
+  for (const i of [1, 2, 3, 4, 5, 6]) {
+    promises.push(debounced(i))
+    await delay(REPEAT_MS)
+  }
+  const resolvedResults = await Promise.all(promises)
+
+  await delay(EXEC_MS)
+
+  // console.log('Results:', results)
+  // console.log('Resolved results:', resolvedResults)
+
+  expect(results).toMatchObject([1, 2, 4, 6])
+  expect(resolvedResults).toMatchObject([1, 1, 1, 3, 4, 4])
 })

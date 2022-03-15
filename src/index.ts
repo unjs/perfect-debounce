@@ -46,6 +46,9 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
     throw new TypeError('Expected `wait` to be a finite number')
   }
 
+  // Last result for leading value
+  let leadingValue
+
   // Debounce timeout handle
   let timeout: NodeJS.Timeout
 
@@ -80,12 +83,12 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
       return currentPromise
     }
     return new Promise((resolve) => {
-      const shouldCallNow = options.leading && !timeout
+      const shouldCallNow = !timeout && options.leading
 
       clearTimeout(timeout)
       timeout = setTimeout(() => {
         timeout = null
-        const promise = applyFn(this, args)
+        const promise = options.leading ? leadingValue : applyFn(this, args)
         for (const _resolve of resolveList) {
           _resolve(promise)
         }
@@ -93,7 +96,8 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
       }, wait)
 
       if (shouldCallNow) {
-        resolve(applyFn(this, args))
+        leadingValue = applyFn(this, args)
+        resolve(leadingValue)
       } else {
         resolveList.push(resolve)
       }
