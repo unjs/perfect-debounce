@@ -47,7 +47,7 @@ export function debounce <ArgumentsT extends unknown[], ReturnT> (
   }
 
   // Last result for leading value
-  let leadingValue: PromiseLike<ReturnT> | ReturnT;
+  let leadingValue: PromiseLike<ReturnT> | ReturnT
 
   // Debounce timeout handle
   let timeout: NodeJS.Timeout
