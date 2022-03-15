@@ -5,6 +5,13 @@
 [![Github Actions][github-actions-src]][github-actions-href]
 [![Codecov][codecov-src]][codecov-href]
 
+> An improved debounce function with Promise support.
+
+- Well tested debounce implementation
+- Native Promise support
+- Avoid duplicate calls while promise is being resolved
+- Configurable `trailing` and `leading` behavior
+
 ## Usage
 
 Install package:
@@ -28,6 +35,32 @@ import { debounce } from 'perfect-debounce'
 
 // CommonJS
 const { debounce } = require('perfect-debounce')
+```
+
+Debounce function:
+
+```js
+const debounced = debounce(async () => {
+  // Some heavy stuff
+}, 25)
+```
+
+When calling `debounced`, it will wait at least for `25ms` as configured before actually calling our function. This helps to avoid multiple calls.
+
+To avoid initial wait, we can set `leading: true` option. It will cause function to be immediately called if there is no other call:
+
+```js
+const debounced = debounce(async () => {
+  // Some heavy stuff
+}, 25, { leading: true })
+```
+
+If executing async function takes longer than debounce value, duplicate calls will be still prevented a last call will happen. To disable this behavior, we can set `trailing: false` option:
+
+```js
+const debounced = debounce(async () => {
+  // Some heavy stuff
+}, 25, { trailing: false })
 ```
 
 ## 💻 Development

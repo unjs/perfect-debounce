@@ -2,16 +2,16 @@ import { setTimeout as delay } from 'timers/promises'
 import { test, expect } from 'vitest'
 import inRange from 'in-range'
 import timeSpan from 'time-span'
-import { debounce, debouncePromise } from '../src'
+import { debounce } from '../src'
 
 const fixture = 'fixture'
 
-test('single call', async () => {
+test.concurrent('single call', async () => {
   const debounced = debounce(async value => value, 100)
   expect(await debounced(fixture)).toBe(fixture)
 })
 
-test('multiple calls', async () => {
+test.concurrent('multiple calls', async () => {
   let count = 0
   const end = timeSpan()
 
@@ -34,29 +34,14 @@ test('multiple calls', async () => {
   expect(await debounced(6)).toBe(6)
 })
 
-test('debouncePromise', async () => {
-  let count = 0
-
-  const debounced = debouncePromise(async () => {
-    await delay(50)
-    count++
-    return count
-  })
-
-  const results = await Promise.all([1, 2, 3, 4, 5].map(_ => debounced()))
-  expect(results).toMatchObject([1, 1, 1, 1, 1])
-
-  expect(await debounced()).toBe(2)
-})
-
-test('before option', async () => {
+test.concurrent('leading option', async () => {
   let count = 0
 
   const debounced = debounce(async (value) => {
     count++
     await delay(50)
     return value
-  }, 100, { before: true })
+  }, 100, { leading: true })
 
   const results = await Promise.all([1, 2, 3, 4].map(value => debounced(value)))
 
@@ -69,12 +54,12 @@ test('before option', async () => {
   expect(await debounced(6)).toBe(5)
 })
 
-test('before option - does not call input function after timeout', async () => {
+test.concurrent('before option - does not call input function after timeout', async () => {
   let count = 0
 
   const debounced = debounce(async () => {
     count++
-  }, 100, { before: true })
+  }, 100, { leading: true })
 
   await delay(300)
   await debounced()
@@ -82,7 +67,7 @@ test('before option - does not call input function after timeout', async () => {
   expect(count).toBe(1)
 })
 
-test('fn takes longer than wait', async () => {
+test.concurrent('fn takes longer than wait', async () => {
   let count = 0
 
   const debounced = debounce(async (value) => {
@@ -100,7 +85,7 @@ test('fn takes longer than wait', async () => {
 
   const results = await Promise.all([...promiseSetOne, ...promiseSetTwo])
 
-  expect(results).toMatchObject([3, 3, 3, 6, 6, 6])
+  expect(results).toMatchObject([3, 3, 3, 3, 3, 3])
   expect(count).toBe(2)
 })
 
@@ -123,21 +108,90 @@ const createFixtureClass = () => class {
   }
 }
 
-const preserveThisCases = [
-  ['debounce()', debounce],
-  ['debounce().promise()', debouncePromise]
-]
+test.concurrent('`this` is preserved ', async () => {
+  const FixtureClass = createFixtureClass()
+  FixtureClass.prototype.foo = (debounce as Function)(FixtureClass.prototype.foo, 10)
+  FixtureClass.prototype.getThis = (debounce as Function)(FixtureClass.prototype.getThis, 10)
 
-for (const [name, debounceFn] of preserveThisCases) {
-  test(`\`this\` is preserved in ${name} fn`, async () => {
-    const FixtureClass = createFixtureClass()
-    FixtureClass.prototype.foo = (debounceFn as Function)(FixtureClass.prototype.foo, 10)
-    FixtureClass.prototype.getThis = (debounceFn as Function)(FixtureClass.prototype.getThis, 10)
+  const thisFixture = new FixtureClass()
 
-    const thisFixture = new FixtureClass()
+  expect(await thisFixture.getThis()).toBe(thisFixture)
+  expect(() => thisFixture.foo()).not.throws()
+  expect(await thisFixture.foo()).toBe(fixture)
+})
 
-    expect(await thisFixture.getThis()).toBe(thisFixture)
-    expect(() => thisFixture.foo()).not.throws()
-    expect(await thisFixture.foo()).toBe(fixture)
-  })
-}
+test.concurrent('wait for promise', async () => {
+  const results = []
+
+  /*
+Time:      000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---400-----> (ms)
+Debounced: +++++++----++++++------++++++-----++++++------++++++------++++++--------------------------------
+Calls:     C(1)        C(2)        C(3)       C(4)        C(5)        C(6)
+Promise:         [           (1)          ][         (3)         ][         (5)          ][  (6)
+Trailing:              T=2          T=3        T=4         T=5        T=6
+Resolves:  R=1         R=1         R=1        R=3         R=3         R=5
+*/
+
+  const EXEC_MS = 100
+  const DEBOUNCE_MS = 25
+  const REPEAT_MS = 50
+
+  const debounced = debounce(async (value) => {
+    await delay(EXEC_MS)
+    results.push(value)
+    return value
+  }, DEBOUNCE_MS)
+
+  const promises = []
+  for (const i of [1, 2, 3, 4, 5, 6]) {
+    promises.push(debounced(i))
+    await delay(REPEAT_MS)
+  }
+  const resolvedResults = await Promise.all(promises)
+
+  await delay(EXEC_MS)
+
+  // console.log('Results:', results)
+  // console.log('Resolved results:', resolvedResults)
+
+  expect(results).toMatchObject([1, 3, 5, 6])
+  expect(resolvedResults).toMatchObject([1, 1, 1, 3, 3, 5])
+})
+
+test.concurrent('wait for promise (leading: true)', async () => {
+  const results = []
+
+  /*
+Time:      000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---400-----> (ms)
+Debounced: +++++++----++++++------++++++-----++++++------++++++------++++++--------------------------------
+Calls:     C(1)        C(2)        C(3)       C(4)        C(5)        C(6)
+Promise:   [           (1)          ][         (2)        ][          (4)          ][     (6)       ]
+Trailing:              T=2         T=3         T=4        T=5.........T=6
+Resolves:  R=1         R=1         R=2        R=2         R=4         R=4
+*/
+
+  const EXEC_MS = 100
+  const DEBOUNCE_MS = 25
+  const REPEAT_MS = 50
+
+  const debounced = debounce(async (value) => {
+    await delay(EXEC_MS)
+    results.push(value)
+    return value
+  }, DEBOUNCE_MS, { leading: true })
+
+  const promises = []
+  for (const i of [1, 2, 3, 4, 5, 6]) {
+    promises.push(debounced(i))
+    await delay(REPEAT_MS)
+  }
+  const resolvedResults = await Promise.all(promises)
+
+  await delay(EXEC_MS)
+
+  // console.log('Results:', results)
+  // console.log('Resolved results:', resolvedResults)
+
+  expect(results).toMatchObject([1, 2, 4, 6])
+  expect(resolvedResults).toMatchObject([1, 1, 2, 2, 4, 4])
+})
