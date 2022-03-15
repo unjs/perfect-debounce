@@ -24,9 +24,9 @@ Debounce functions
 @returns A function that delays calling `fn` until after `wait` milliseconds have elapsed since the last time it was called.
 @example
 ```
-import pDebounce from 'p-debounce';
+import { debounce } from 'perfect-debounce';
 const expensiveCall = async input => input;
-const debouncedFn = pDebounce(expensiveCall, 200);
+const debouncedFn = debounce(expensiveCall, 200);
 for (const number of [1, 2, 3]) {
   console.log(await debouncedFn(number));
 }
