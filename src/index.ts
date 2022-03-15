@@ -4,14 +4,21 @@ export interface DebounceOptions {
   Meaning immediately, instead of waiting for `wait` milliseconds.
   @default false
   */
-  readonly before?: boolean;
+  readonly leading?: boolean;
+
+  /**
+  Call the `fn` on trailing edge with last used arguments. Result of call is from previous call.
+  @default false
+  */
+  readonly trailing?: boolean;
 }
 
 const DEBOUNCE_DEFAULTS: DebounceOptions = {
+  trailing: true
 }
 
 /**
-[Debounce](https://css-tricks.com/debouncing-throttling-explained-examples/) promise-returning & async functions.
+Debounce functions
 @param fn - Promise-returning/async function to debounce.
 @param wait - Milliseconds to wait before calling `fn`.
 @returns A function that delays calling `fn` until after `wait` milliseconds have elapsed since the last time it was called.
@@ -39,9 +46,6 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
     throw new TypeError('Expected `wait` to be a finite number')
   }
 
-  // Only used with options.before enabled
-  let leadingValue
-
   // Debounce timeout handle
   let timeout: NodeJS.Timeout
 
@@ -56,41 +60,40 @@ export function debounce <ArgumentsType extends unknown[], ReturnType> (
 
   const applyFn = async (_this, args) => {
     currentPromise = _applyPromised(fn, _this, args)
-    currentPromise.finally(() => {
-      currentPromise = null
-      if (trailingArgs && !timeout) {
-        const _trailingArgs = trailingArgs
-        trailingArgs = null
-        return applyFn(_this, _trailingArgs)
-      }
-    })
+    currentPromise
+      .finally(() => {
+        currentPromise = null
+        if (options.trailing && trailingArgs && !timeout) {
+          const promise = applyFn(_this, trailingArgs)
+          trailingArgs = null
+          return promise
+        }
+      })
     return currentPromise
   }
 
   return function (...args) {
-    if (currentPromise && !timeout) {
-      trailingArgs = args
+    if (currentPromise) {
+      if (options.trailing) {
+        trailingArgs = args
+      }
       return currentPromise
     }
     return new Promise((resolve) => {
-      const shouldCallNow = options.before && !timeout
+      const shouldCallNow = options.leading && !timeout
 
       clearTimeout(timeout)
-
       timeout = setTimeout(() => {
         timeout = null
-
-        const result = options.before ? leadingValue : applyFn(this, args)
+        const promise = applyFn(this, args)
         for (const _resolve of resolveList) {
-          _resolve(result)
+          _resolve(promise)
         }
-
         resolveList = []
       }, wait)
 
       if (shouldCallNow) {
-        leadingValue = applyFn(this, args)
-        resolve(leadingValue)
+        resolve(applyFn(this, args))
       } else {
         resolveList.push(resolve)
       }

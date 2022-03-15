@@ -34,14 +34,14 @@ test.concurrent('multiple calls', async () => {
   expect(await debounced(6)).toBe(6)
 })
 
-test.concurrent('before option', async () => {
+test.concurrent('leading option', async () => {
   let count = 0
 
   const debounced = debounce(async (value) => {
     count++
     await delay(50)
     return value
-  }, 100, { before: true })
+  }, 100, { leading: true })
 
   const results = await Promise.all([1, 2, 3, 4].map(value => debounced(value)))
 
@@ -51,7 +51,7 @@ test.concurrent('before option', async () => {
 
   await delay(200)
   expect(await debounced(5)).toBe(5)
-  expect(await debounced(6)).toBe(5)
+  expect(await debounced(6)).toBe(6)
 })
 
 test.concurrent('before option - does not call input function after timeout', async () => {
@@ -59,7 +59,7 @@ test.concurrent('before option - does not call input function after timeout', as
 
   const debounced = debounce(async () => {
     count++
-  }, 100, { before: true })
+  }, 100, { leading: true })
 
   await delay(300)
   await debounced()
@@ -120,8 +120,17 @@ test.concurrent('`this` is preserved ', async () => {
   expect(await thisFixture.foo()).toBe(fixture)
 })
 
-test.concurrent('waitForPromise', async () => {
+test.concurrent('wait for promise', async () => {
   const results = []
+
+  /*
+Calls:     C(1)        C(2)        C(3)       C(4)        C(5)        C(6)
+Resolves:  R=1         R=1         R=1        R=3         R=3         R=5
+Time (ms): 000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---->
+Debounced: +++++++------++++++------++++++-----++++++------++++++------++++++------------------------
+Promise:         [           (1)          ][         (3)         ][         (5)          ][  (6)
+Trailing:              T=2          T=3        T=4         T=5        T=6
+*/
 
   const EXEC_MS = 100
   const DEBOUNCE_MS = 25
