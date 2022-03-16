@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/unjs/perfect-debounce/compare/v0.1.2...v0.1.3) (2022-03-16)
+
+
+### Bug Fixes
+
+* type `debounce` function ([#2](https://github.com/unjs/perfect-debounce/issues/2)) ([9c5f9fc](https://github.com/unjs/perfect-debounce/commit/9c5f9fc3626aac312d811551fe4934a2958aa012))
+
 ### [0.1.2](https://github.com/unjs/perfect-debounce/compare/v0.1.1...v0.1.2) (2022-03-15)
 
 
