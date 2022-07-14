@@ -33,10 +33,10 @@
     "eslint": "latest",
     "in-range": "^3.0.0",
     "standard-version": "latest",
-    "time-span": "^5.0.0",
+    "time-span": "^5.1.0",
     "typescript": "latest",
     "unbuild": "latest",
     "vitest": "latest"
   },
-  "packageManager": "pnpm@6.32.23"
+  "packageManager": "pnpm@6.33.1"
 }
