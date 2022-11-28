@@ -24,7 +24,7 @@ npm install perfect-debounce
 yarn add perfect-debounce
 
 # pnpm
-pnpm install perfect-debounce
+pnpm add perfect-debounce
 ```
 
 Import:
