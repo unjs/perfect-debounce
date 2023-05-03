@@ -22,22 +22,23 @@
   "scripts": {
     "build": "unbuild",
     "dev": "vitest dev",
-    "lint": "eslint --ext .ts,.js,.mjs,.cjs .",
-    "prepack": "unbuild",
-    "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
+    "lint": "eslint --ext .ts,.js,.mjs,.cjs . && prettier --check src test",
+    "lint:fix": "eslint --ext .ts,.js,.mjs,.cjs . --fix && prettier -w src test",
+    "release": "pnpm test && pnpm build && changelogen --release --push && npm publish",
     "test": "vitest run --coverage"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@nuxtjs/eslint-config-typescript": "latest",
-    "c8": "latest",
-    "eslint": "latest",
+    "@types/node": "^18.16.3",
+    "@vitest/coverage-c8": "^0.31.0",
+    "changelogen": "^0.5.3",
+    "eslint": "^8.39.0",
+    "eslint-config-unjs": "^0.1.0",
     "in-range": "^3.0.0",
-    "standard-version": "latest",
+    "prettier": "^2.8.8",
     "time-span": "^5.0.0",
-    "typescript": "latest",
-    "unbuild": "latest",
-    "vitest": "latest"
+    "typescript": "^5.0.4",
+    "unbuild": "^1.2.1",
+    "vitest": "^0.31.0"
   },
-  "packageManager": "pnpm@6.32.23"
+  "packageManager": "pnpm@8.4.0"
 }

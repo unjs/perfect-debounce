@@ -1,8 +1,6 @@
 {
-  "extends": [
-    "@nuxtjs/eslint-config-typescript"
-  ],
+  "extends": ["eslint-config-unjs"],
   "rules": {
-    "require-await": "off"
+    "unicorn/no-null": 0
   }
 }
