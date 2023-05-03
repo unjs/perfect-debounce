@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.0.0
+
+[compare changes](https://undefined/undefined/compare/v0.1.3...v1.0.0)
+
+
+### 🩹 Fixes
+
+  - **pkg:** Add `types` subpath export (#14)
+
+### 📖 Documentation
+
+  - Use correct yarn command (#12)
+  - Update installation guide for `pnpm` (#13)
+
+### 🏡 Chore
+
+  - Update renovate config (#11)
+  - Update repo (46bc53a)
+  - Eslint ignore coverage (17fe6cf)
+  - Lint tests (18fe26a)
+
+### ❤️  Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Daniel Roe <daniel@roe.dev>
+- Levi (Nguyễn Lương Huy) ([@huynl-96](http://github.com/huynl-96))
+- Nozomu Ikuta <nick.0508.nick@gmail.com>
+- François Risoud ([@qnp](http://github.com/qnp))
+
 ### [0.1.3](https://github.com/unjs/perfect-debounce/compare/v0.1.2...v0.1.3) (2022-03-16)
 
 
