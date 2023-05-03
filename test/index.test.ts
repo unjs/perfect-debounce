@@ -7,6 +7,7 @@ import { debounce } from "../src";
 const fixture = "fixture";
 
 test.concurrent("single call", async () => {
+  // eslint-disable-next-line require-await
   const debounced = debounce(async (value) => value, 100);
   expect(await debounced(fixture)).toBe(fixture);
 });
@@ -70,6 +71,7 @@ test.concurrent(
     let count = 0;
 
     const debounced = debounce(
+      // eslint-disable-next-line require-await
       async () => {
         count++;
       },
@@ -128,11 +130,11 @@ const createFixtureClass = () =>
 
 test.concurrent("`this` is preserved ", async () => {
   const FixtureClass = createFixtureClass();
-  FixtureClass.prototype.foo = (debounce as Function)(
+  FixtureClass.prototype.foo = (debounce as any)(
     FixtureClass.prototype.foo,
     10
   );
-  FixtureClass.prototype.getThis = (debounce as Function)(
+  FixtureClass.prototype.getThis = (debounce as any)(
     FixtureClass.prototype.getThis,
     10
   );
@@ -145,7 +147,7 @@ test.concurrent("`this` is preserved ", async () => {
 });
 
 test.concurrent("wait for promise", async () => {
-  const results = [];
+  const results: any[] = [];
 
   /*
 Time:      000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---400-----> (ms)
@@ -166,7 +168,7 @@ Resolves:  R=1         R=1         R=1        R=3         R=3         R=5
     return value;
   }, DEBOUNCE_MS);
 
-  const promises = [];
+  const promises: Promise<any>[] = [];
   for (const i of [1, 2, 3, 4, 5, 6]) {
     promises.push(debounced(i));
     await delay(REPEAT_MS);
@@ -183,7 +185,7 @@ Resolves:  R=1         R=1         R=1        R=3         R=3         R=5
 });
 
 test.concurrent("wait for promise (leading: true)", async () => {
-  const results = [];
+  const results: any[] = [];
 
   /*
 Time:      000---025---050---075---100---125--150---175---200---225---250---275---300---325--350---400-----> (ms)
@@ -208,7 +210,7 @@ Resolves:  R=1         R=1         R=2        R=2         R=4         R=4
     { leading: true }
   );
 
-  const promises = [];
+  const promises: Promise<any>[] = [];
   for (const i of [1, 2, 3, 4, 5, 6]) {
     promises.push(debounced(i));
     await delay(REPEAT_MS);
