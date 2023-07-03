@@ -2,9 +2,15 @@ import { setTimeout as delay } from "node:timers/promises";
 import { test, expect } from "vitest";
 import inRange from "in-range";
 import timeSpan from "time-span";
-import { debounce } from "../src";
+import { debounce, uniq } from "../src";
+
 
 const fixture = "fixture";
+
+test.concurrent('uniq', () => {
+  const arr = [1,2,3,4,5,6,1,1,2,3,4,5,6,7,1,5,10,12]
+  expect(uniq(arr)).toEqual([1,2,3,4,5,6,7,10,12])
+})
 
 test.concurrent("single call", async () => {
   // eslint-disable-next-line require-await
@@ -37,6 +43,27 @@ test.concurrent("multiple calls", async () => {
 
   await delay(110);
   expect(await debounced(6)).toBe(6);
+});
+
+test.concurrent("multiple calls with option.dirrence = true", async () => {
+  let count = 0;
+  const end = timeSpan();
+
+  const debounced = debounce(async (value) => {
+    count++;
+    await delay(50);
+    return value;
+  }, 100, { diff: true });
+
+  const results = await Promise.all(
+    [1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6, 1, 1, 2, 3].map((value) => debounced(value))
+  );
+
+  expect(results).toMatchObject([1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6, 1, 1, 2, 3]);
+  expect(count).toBe(6);
+
+  await delay(110);
+  expect(await debounced(10)).toBe(10);
 });
 
 test.concurrent("leading option", async () => {
@@ -101,7 +128,6 @@ test.concurrent("fn takes longer than wait", async () => {
   const promiseSetOne = setOne.map((value) => debounced(value));
   await delay(101);
   const promiseSetTwo = setTwo.map((value) => debounced(value));
-
   const results = await Promise.all([...promiseSetOne, ...promiseSetTwo]);
 
   expect(results).toMatchObject([3, 3, 3, 3, 3, 3]);

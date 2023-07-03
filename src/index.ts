@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 export interface DebounceOptions {
   /**
   Call the `fn` on the [leading edge of the timeout](https://css-tricks.com/debouncing-throttling-explained-examples/#article-header-id-1).
@@ -11,6 +13,12 @@ export interface DebounceOptions {
   @default false
   */
   readonly trailing?: boolean;
+
+  /**
+   * Call the `fn` all the way with different arguments. When `different` is true, `leading` and `trailing` will be ignored.
+   * @default false
+   */
+  readonly diff?: boolean;
 }
 
 const DEBOUNCE_DEFAULTS: DebounceOptions = {
@@ -61,6 +69,8 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
   // Trailing call info
   let trailingArgs: any[];
 
+  let argsArray: ArgumentsT[] = [];
+
   const applyFn = (_this, args) => {
     currentPromise = _applyPromised(fn, _this, args);
     currentPromise.finally(() => {
@@ -87,10 +97,26 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         timeout = null;
-        const promise = options.leading ? leadingValue : applyFn(this, args);
-        for (const _resolve of resolveList) {
-          _resolve(promise);
+        if (options.diff) {
+          const argsUniqueArray = uniq(argsArray);
+          const promiseArray: Record<number,Promise<ReturnT>> = {};
+          for (const [i, args] of argsUniqueArray.entries()) {
+            promiseArray[i] = applyFn(this, args);
+          }
+          for (const [i, _resolve] of resolveList.entries()) {
+            const args = argsArray[i];
+            const index = _.findIndex(argsUniqueArray, (item) => _.isEqual(item, args));
+            const promise = promiseArray[index];
+            _resolve(promise)
+          }
+        } 
+        else {
+          const promise = options.leading ? leadingValue : applyFn(this, args);
+          for (const _resolve of resolveList) {
+            _resolve(promise);
+          }
         }
+        argsArray = []
         resolveList = [];
       }, wait);
 
@@ -99,6 +125,9 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
         resolve(leadingValue);
       } else {
         resolveList.push(resolve);
+        if (options.diff) {
+          argsArray.push(args);
+        }
       }
     });
   };
@@ -106,4 +135,18 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
 
 async function _applyPromised(fn: () => any, _this: unknown, args: any[]) {
   return await fn.apply(_this, args);
+}
+
+export function uniq(arr: any[]) {
+  const newArr = [];
+  for (const item of arr) {
+    if (Array.isArray(item)) {
+      if (!newArr.some((newItem) => _.isEqual(newItem, item))) {
+        newArr.push(item);
+      }
+    } else if (!newArr.includes(item)) {
+        newArr.push(item);
+      }
+  }
+  return newArr;
 }
