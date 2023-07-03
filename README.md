@@ -63,6 +63,14 @@ const debounced = debounce(async () => {
 }, 25, { trailing: false })
 ```
 
+If you want to always execute functions with different parameters, please set `diff: true` option. Note that when `diff` is true, `leading` and `trailing` will be ignored.
+
+```js
+const debounced = debounce(async (args) => {
+  // Some heavy stuff
+}, 25, { diff: false })
+```
+
 ## 💻 Development
 
 - Clone this repository

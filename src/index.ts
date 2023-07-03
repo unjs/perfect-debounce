@@ -15,7 +15,7 @@ export interface DebounceOptions {
   readonly trailing?: boolean;
 
   /**
-   * Call the `fn` all the way with different arguments. When `different` is true, `leading` and `trailing` will be ignored.
+   * Call the `fn` all the way with different arguments. When `diff` is true, `leading` and `trailing` will be ignored.
    * @default false
    */
   readonly diff?: boolean;
