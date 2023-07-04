@@ -137,7 +137,7 @@ async function _applyPromised(fn: () => any, _this: unknown, args: any[]) {
   return await fn.apply(_this, args);
 }
 
-export function uniq(arr: any[]) {
+function uniq(arr: any[]) {
   const newArr = [];
   for (const item of arr) {
     if (Array.isArray(item)) {
