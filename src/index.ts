@@ -8,7 +8,7 @@ export interface DebounceOptions {
 
   /**
   Call the `fn` on trailing edge with last used arguments. Result of call is from previous call.
-  @default false
+  @default true
   */
   readonly trailing?: boolean;
 }
