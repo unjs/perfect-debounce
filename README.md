@@ -5,7 +5,9 @@
 [![Github Actions][github-actions-src]][github-actions-href]
 [![Codecov][codecov-src]][codecov-href]
 
-> An improved debounce function with Promise support.
+Improved debounce function with Promise support.
+
+## Features
 
 - Well tested debounce implementation
 - Native Promise support
