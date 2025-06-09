@@ -16,8 +16,14 @@ export interface DebounceOptions {
 type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
   ...args: ArgumentsT
 ) => Promise<ReturnT>) & {
+  /**
+   * Cancel pending function call
+   */
   cancel: () => void;
-  flush: () => Promise<ReturnT> | ReturnT;
+  /**
+   * Immediately invoke pending function call
+   */
+  flush: () => Promise<ReturnT> | undefined;
 };
 
 const DEBOUNCE_DEFAULTS: DebounceOptions = {
@@ -111,23 +117,26 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
     });
   };
 
-  debounced.cancel = () => {
-    if (timeout) {
-      clearTimeout(timeout);
+  const _clearTimeout = (timer: NodeJS.Timeout) => {
+    if (timer) {
+      clearTimeout(timer);
       timeout = null;
     }
-    trailingArgs = null;
-    currentPromise = null;
+  };
+
+  debounced.cancel = () => {
+    _clearTimeout(timeout);
     resolveList = [];
+    trailingArgs = null;
   };
   debounced.flush = () => {
-    if (timeout) {
-      clearTimeout(timeout);
-      timeout = null;
+    _clearTimeout(timeout);
+    if (!trailingArgs || currentPromise) {
+      return;
     }
-    const promise = applyFn(this, trailingArgs ?? []);
+    const args = trailingArgs;
     trailingArgs = null;
-    return promise;
+    return applyFn(this, args);
   };
 
   return debounced;
