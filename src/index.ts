@@ -24,6 +24,10 @@ type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
    * Immediately invoke pending function call
    */
   flush: () => Promise<ReturnT> | undefined;
+  /**
+   * Get pending function call
+   */
+  isPending: () => boolean;
 };
 
 const DEBOUNCE_DEFAULTS: DebounceOptions = {
@@ -123,6 +127,8 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
       timeout = null;
     }
   };
+
+  debounced.isPending = () => !!timeout;
 
   debounced.cancel = () => {
     _clearTimeout(timeout);
