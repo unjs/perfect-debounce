@@ -129,15 +129,30 @@ test("flush method of debounced with immediate call", async () => {
   });
   const debounced = debounce(fn, 100);
 
-  debounced(1);
-  debounced(2);
-  debounced(3);
+  [1, 2, 3].map((value) => debounced(value));
 
   const flushResult = await debounced.flush();
   expect(flushResult).toBe(6);
 
   expect(fn).toHaveBeenCalledTimes(1);
   expect(fn).toHaveBeenCalledWith(3);
+});
+
+test("isPending method of debounced", async () => {
+  const fn = vi.fn(async (value) => {
+    await delay(50);
+    return value;
+  });
+  const debounced = debounce(fn, 100);
+
+  const promises = [1, 2].map((value) => debounced(value));
+
+  expect(debounced.isPending()).toBe(true);
+  await delay(150);
+  expect(debounced.isPending()).toBe(false);
+  expect(fn).toHaveBeenCalledTimes(1);
+
+  await Promise.all(promises);
 });
 
 // Factory to create a separate class for each test below
