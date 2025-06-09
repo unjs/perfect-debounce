@@ -13,6 +13,13 @@ export interface DebounceOptions {
   readonly trailing?: boolean;
 }
 
+type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
+  ...args: ArgumentsT
+) => Promise<ReturnT>) & {
+  cancel: () => void;
+  flush: () => Promise<ReturnT> | ReturnT;
+};
+
 const DEBOUNCE_DEFAULTS: DebounceOptions = {
   trailing: true,
 };
@@ -39,7 +46,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
   fn: (...args: ArgumentsT) => PromiseLike<ReturnT> | ReturnT,
   wait = 25,
   options: DebounceOptions = {}
-) {
+): DebouncedReturn<ArgumentsT, ReturnT> {
   // Validate options
   options = { ...DEBOUNCE_DEFAULTS, ...options };
   if (!Number.isFinite(wait)) {
@@ -74,11 +81,11 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
     return currentPromise;
   };
 
-  return function (...args: ArgumentsT) {
+  const debounced = function (...args: ArgumentsT) {
+    if (options.trailing) {
+      trailingArgs = args;
+    }
     if (currentPromise) {
-      if (options.trailing) {
-        trailingArgs = args;
-      }
       return currentPromise;
     }
     return new Promise<ReturnT>((resolve) => {
@@ -88,6 +95,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
       timeout = setTimeout(() => {
         timeout = null;
         const promise = options.leading ? leadingValue : applyFn(this, args);
+        trailingArgs = null;
         for (const _resolve of resolveList) {
           _resolve(promise);
         }
@@ -102,6 +110,27 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
       }
     });
   };
+
+  debounced.cancel = () => {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    trailingArgs = null;
+    currentPromise = null;
+    resolveList = [];
+  };
+  debounced.flush = () => {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    const promise = applyFn(this, trailingArgs ?? []);
+    trailingArgs = null;
+    return promise;
+  };
+
+  return debounced;
 }
 
 async function _applyPromised(fn: () => any, _this: unknown, args: any[]) {
