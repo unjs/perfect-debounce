@@ -34,7 +34,7 @@
     "eslint": "^8.41.0",
     "eslint-config-unjs": "^0.2.0",
     "in-range": "^3.0.0",
-    "prettier": "^2.8.8",
+    "prettier": "^3.6.2",
     "time-span": "^5.1.0",
     "typescript": "^5.0.4",
     "unbuild": "^1.2.1",
