@@ -28,7 +28,7 @@
     "test": "vitest run --coverage"
   },
   "devDependencies": {
-    "@types/node": "^18.16.16",
+    "@types/node": "^22.17.2",
     "@vitest/coverage-c8": "^0.31.1",
     "changelogen": "^0.5.3",
     "eslint": "^8.41.0",
