@@ -28,17 +28,17 @@
     "test": "vitest run --coverage"
   },
   "devDependencies": {
-    "@types/node": "^18.16.16",
-    "@vitest/coverage-c8": "^0.31.1",
-    "changelogen": "^0.5.3",
-    "eslint": "^8.41.0",
-    "eslint-config-unjs": "^0.2.0",
+    "@types/node": "^18.19.123",
+    "@vitest/coverage-c8": "^0.33.0",
+    "changelogen": "^0.6.2",
+    "eslint": "^8.57.1",
+    "eslint-config-unjs": "^0.5.0",
     "in-range": "^3.0.0",
     "prettier": "^2.8.8",
     "time-span": "^5.1.0",
-    "typescript": "^5.0.4",
+    "typescript": "^5.9.2",
     "unbuild": "^1.2.1",
-    "vitest": "^0.31.1"
+    "vitest": "^0.34.6"
   },
-  "packageManager": "pnpm@8.5.1"
+  "packageManager": "pnpm@8.15.9"
 }
