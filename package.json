@@ -37,7 +37,7 @@
     "prettier": "^2.8.8",
     "time-span": "^5.1.0",
     "typescript": "^5.0.4",
-    "unbuild": "^1.2.1",
+    "unbuild": "^3.6.1",
     "vitest": "^0.31.1"
   },
   "packageManager": "pnpm@8.5.1"
