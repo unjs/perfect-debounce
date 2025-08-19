@@ -38,7 +38,7 @@
     "time-span": "^5.1.0",
     "typescript": "^5.0.4",
     "unbuild": "^1.2.1",
-    "vitest": "^0.31.1"
+    "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@8.5.1"
 }
