@@ -18,6 +18,7 @@ Improved debounce function with Promise support.
 - Native Promise support
 - Avoid duplicate calls while promise is being resolved
 - Configurable `trailing` and `leading` behavior
+- Control methods
 
 ## Usage
 
@@ -39,11 +40,6 @@ Debounce function:
 const debounced = debounce(async () => {
   // Some heavy stuff
 }, 25);
-
-// Control methods:
-debounced.cancel(); // Cancel any pending call
-await debounced.flush(); // Immediately invoke pending call (if any)
-debounced.isPending(); // Returns true if a call is pending
 ```
 
 When calling `debounced`, it will wait at least for `25ms` as configured before actually calling your function. This helps to avoid multiple calls.
@@ -56,7 +52,13 @@ The returned debounced function provides additional control methods:
 - `await debounced.flush()`: Immediately invoke the pending function call (if any) and return its result.
 - `debounced.isPending()`: Returns `true` if there is a pending invocation waiting to be called, otherwise `false`.
 
-#### Example usage
+```js
+debounced.cancel(); // Cancel any pending call
+await debounced.flush(); // Immediately invoke pending call (if any)
+debounced.isPending(); // Returns true if a call is pending
+```
+
+### Example
 
 ```js
 const debounced = debounce(async (value) => {
