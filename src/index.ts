@@ -119,7 +119,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
         resolveList.push(resolve);
       }
     });
-  };
+  } as DebouncedReturn<ArgumentsT, ReturnT>;
 
   const _clearTimeout = (timer: NodeJS.Timeout) => {
     if (timer) {
@@ -135,6 +135,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
     resolveList = [];
     trailingArgs = null;
   };
+
   debounced.flush = () => {
     _clearTimeout(timeout);
     if (!trailingArgs || currentPromise) {
