@@ -38,7 +38,7 @@ for (const number of [1, 2, 3]) {
 export function debounce<ArgumentsT extends unknown[], ReturnT>(
   fn: (...args: ArgumentsT) => PromiseLike<ReturnT> | ReturnT,
   wait = 25,
-  options: DebounceOptions = {}
+  options: DebounceOptions = {},
 ) {
   // Validate options
   options = { ...DEBOUNCE_DEFAULTS, ...options };
