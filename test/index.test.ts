@@ -1,5 +1,5 @@
 import { setTimeout as delay } from "node:timers/promises";
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import inRange from "in-range";
 import timeSpan from "time-span";
 import { debounce } from "../src";
@@ -104,6 +104,53 @@ test.concurrent("fn takes longer than wait", async () => {
 
   expect(results).toMatchObject([3, 3, 3, 3, 3, 3]);
   expect(count).toBe(2);
+});
+
+test("cancel method of debounced", async () => {
+  const fn = vi.fn(async () => {
+    await delay(50);
+    return 1;
+  });
+  const debounced = debounce(fn, 100);
+
+  debounced();
+  debounced.cancel();
+  await delay(150);
+
+  expect(fn).not.toHaveBeenCalled();
+});
+
+test("flush method of debounced with immediate call", async () => {
+  const fn = vi.fn(async (value: number) => {
+    await delay(50);
+    return value * 2;
+  });
+  const debounced = debounce(fn, 100);
+
+  [1, 2, 3].map((value) => debounced(value));
+
+  const flushResult = await debounced.flush();
+  expect(flushResult).toBe(6);
+
+  expect(fn).toHaveBeenCalledTimes(1);
+  expect(fn).toHaveBeenCalledWith(3);
+});
+
+test("isPending method of debounced", async () => {
+  const fn = vi.fn(async (value) => {
+    await delay(50);
+    return value;
+  });
+  const debounced = debounce(fn, 100);
+
+  const promises = [1, 2].map((value) => debounced(value));
+
+  expect(debounced.isPending()).toBe(true);
+  await delay(150);
+  expect(debounced.isPending()).toBe(false);
+  expect(fn).toHaveBeenCalledTimes(1);
+
+  await Promise.all(promises);
 });
 
 // Factory to create a separate class for each test below
