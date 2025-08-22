@@ -1,9 +1,14 @@
 # perfect-debounce
 
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![Github Actions][github-actions-src]][github-actions-href]
-[![Codecov][codecov-src]][codecov-href]
+<!-- automd:badges color=yellow codecov bundlephobia packagephobia  -->
+
+[![npm version](https://img.shields.io/npm/v/perfect-debounce?color=yellow)](https://npmjs.com/package/perfect-debounce)
+[![npm downloads](https://img.shields.io/npm/dm/perfect-debounce?color=yellow)](https://npm.chart.dev/perfect-debounce)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/perfect-debounce?color=yellow)](https://bundlephobia.com/package/perfect-debounce)
+[![install size](https://badgen.net/packagephobia/install/perfect-debounce?color=yellow)](https://packagephobia.com/result?p=perfect-debounce)
+[![codecov](https://img.shields.io/codecov/c/gh/unjs/perfect-debounce?color=yellow)](https://codecov.io/gh/unjs/perfect-debounce)
+
+<!-- /automd -->
 
 Improved debounce function with Promise support.
 
@@ -19,24 +24,13 @@ Improved debounce function with Promise support.
 Install package:
 
 ```sh
-# npm
-npm install perfect-debounce
-
-# yarn
-yarn add perfect-debounce
-
-# pnpm
-pnpm add perfect-debounce
+npx nypm i perfect-debounce
 ```
 
 Import:
 
 ```js
-// ESM
 import { debounce } from "perfect-debounce";
-
-// CommonJS
-const { debounce } = require("perfect-debounce");
 ```
 
 Debounce function:
@@ -118,19 +112,6 @@ const debounced = debounce(
 
 ## License
 
-Made with 💛
-
 Based on [sindresorhus/p-debounce](https://github.com/sindresorhus/p-debounce).
 
-Published under [MIT License](./LICENSE).
-
-<!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/perfect-debounce?style=flat-square
-[npm-version-href]: https://npmjs.com/package/perfect-debounce
-[npm-downloads-src]: https://img.shields.io/npm/dm/perfect-debounce?style=flat-square
-[npm-downloads-href]: https://npmjs.com/package/perfect-debounce
-[github-actions-src]: https://img.shields.io/github/actions/workflow/status/unjs/perfect-debounce/ci.yml?branch=main&style=flat-square
-[github-actions-href]: https://github.com/unjs/perfect-debounce/actions?query=workflow%3Aci
-[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/perfect-debounce/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/unjs/perfect-debounce
+Made with 💛 Published under [MIT License](./LICENSE).
