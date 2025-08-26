@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 export interface DebounceOptions {
   /**
   Call the `fn` on the [leading edge of the timeout](https://css-tricks.com/debouncing-throttling-explained-examples/#article-header-id-1).
@@ -105,11 +103,11 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
           }
           for (const [i, _resolve] of resolveList.entries()) {
             const args = argsArray[i];
-            const index = _.findIndex(argsUniqueArray, (item) => _.isEqual(item, args));
+            const index = findIndex(argsUniqueArray, (item) => isEqual(item, args));
             const promise = promiseArray[index];
             _resolve(promise)
           }
-        } 
+        }
         else {
           const promise = options.leading ? leadingValue : applyFn(this, args);
           for (const _resolve of resolveList) {
@@ -137,11 +135,11 @@ async function _applyPromised(fn: () => any, _this: unknown, args: any[]) {
   return await fn.apply(_this, args);
 }
 
-function uniq(arr: any[]) {
+export function uniq(arr: any[]) {
   const newArr = [];
   for (const item of arr) {
     if (Array.isArray(item)) {
-      if (!newArr.some((newItem) => _.isEqual(newItem, item))) {
+      if (!newArr.some((newItem) => isEqual(newItem, item))) {
         newArr.push(item);
       }
     } else if (!newArr.includes(item)) {
@@ -149,4 +147,32 @@ function uniq(arr: any[]) {
       }
   }
   return newArr;
+}
+
+function findIndex(arr: any[], predicate: (item: any) => boolean): number {
+  for (const [i, element] of arr.entries()) {
+    if (predicate(element)) { return i; }
+  }
+  return -1;
+}
+
+function isEqual(a: any, b: any): boolean {
+  if (a === b) { return true; }
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) { return false; }
+    for (const [i, element] of a.entries()) {
+      if (!isEqual(element, b[i])) { return false; }
+    }
+    return true;
+  }
+  if (typeof a === 'object' && typeof b === 'object' && a && b) {
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    if (keysA.length !== keysB.length) { return false; }
+    for (const key of keysA) {
+      if (!isEqual(a[key], b[key])) { return false; }
+    }
+    return true;
+  }
+  return false;
 }
