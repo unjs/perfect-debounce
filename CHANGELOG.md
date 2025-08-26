@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v2.0.0
+
+[compare changes](https://github.com/unjs/perfect-debounce/compare/v1.0.0...v2.0.0)
+
+### 🚀 Enhancements
+
+- Add control methods to enhance debounce ([#35](https://github.com/unjs/perfect-debounce/pull/35))
+
+### 📖 Documentation
+
+- Fix typo for default value of `trailing` option in jsdocs ([#19](https://github.com/unjs/perfect-debounce/pull/19))
+- Update readme ([84d3b11](https://github.com/unjs/perfect-debounce/commit/84d3b11))
+- Fix typo for example of debounce function ([#21](https://github.com/unjs/perfect-debounce/pull/21))
+
+### 📦 Build
+
+- ⚠️  Esm-only dist ([eb12800](https://github.com/unjs/perfect-debounce/commit/eb12800))
+
+### 🏡 Chore
+
+- Update badge ([#22](https://github.com/unjs/perfect-debounce/pull/22))
+- Update repo ([be83986](https://github.com/unjs/perfect-debounce/commit/be83986))
+- Update ci ([d8cc21b](https://github.com/unjs/perfect-debounce/commit/d8cc21b))
+- Fix ci ([94d3d63](https://github.com/unjs/perfect-debounce/commit/94d3d63))
+- Update readme ([341a435](https://github.com/unjs/perfect-debounce/commit/341a435))
+- Update readme ([087c1c0](https://github.com/unjs/perfect-debounce/commit/087c1c0))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Esm-only dist ([eb12800](https://github.com/unjs/perfect-debounce/commit/eb12800))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+- Alex Peshkov <1alexpeshkov@gmail.com>
+- Вокалёк ([@wokalek](https://github.com/wokalek))
+- Sébastien Chopin <seb@nuxtlabs.com>
+- Luke Nelson <luke@nelson.zone>
+- Murisceman <murisceman@gmail.com>
+
 ## v1.0.0
 
 [compare changes](https://undefined/undefined/compare/v0.1.3...v1.0.0)

@@ -1,5 +1,5 @@
 import { setTimeout as delay } from "node:timers/promises";
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import inRange from "in-range";
 import timeSpan from "time-span";
 import { debounce, uniq } from "../src";
@@ -13,7 +13,6 @@ test.concurrent('uniq', () => {
 })
 
 test.concurrent("single call", async () => {
-  // eslint-disable-next-line require-await
   const debounced = debounce(async (value) => value, 100);
   expect(await debounced(fixture)).toBe(fixture);
 });
@@ -29,7 +28,7 @@ test.concurrent("multiple calls", async () => {
   }, 100);
 
   const results = await Promise.all(
-    [1, 2, 3, 4, 5].map((value) => debounced(value))
+    [1, 2, 3, 4, 5].map((value) => debounced(value)),
   );
 
   expect(results).toMatchObject([5, 5, 5, 5, 5]);
@@ -38,7 +37,7 @@ test.concurrent("multiple calls", async () => {
     inRange(end(), {
       start: 130,
       end: 170,
-    })
+    }),
   ).toBe(true);
 
   await delay(110);
@@ -76,11 +75,11 @@ test.concurrent("leading option", async () => {
       return value;
     },
     100,
-    { leading: true }
+    { leading: true },
   );
 
   const results = await Promise.all(
-    [1, 2, 3, 4].map((value) => debounced(value))
+    [1, 2, 3, 4].map((value) => debounced(value)),
   );
 
   // value from the first promise is used without the timeout
@@ -98,19 +97,18 @@ test.concurrent(
     let count = 0;
 
     const debounced = debounce(
-      // eslint-disable-next-line require-await
       async () => {
         count++;
       },
       100,
-      { leading: true }
+      { leading: true },
     );
 
     await delay(300);
     await debounced();
 
     expect(count).toBe(1);
-  }
+  },
 );
 
 test.concurrent("fn takes longer than wait", async () => {
@@ -132,6 +130,53 @@ test.concurrent("fn takes longer than wait", async () => {
 
   expect(results).toMatchObject([3, 3, 3, 3, 3, 3]);
   expect(count).toBe(2);
+});
+
+test("cancel method of debounced", async () => {
+  const fn = vi.fn(async () => {
+    await delay(50);
+    return 1;
+  });
+  const debounced = debounce(fn, 100);
+
+  debounced();
+  debounced.cancel();
+  await delay(150);
+
+  expect(fn).not.toHaveBeenCalled();
+});
+
+test("flush method of debounced with immediate call", async () => {
+  const fn = vi.fn(async (value: number) => {
+    await delay(50);
+    return value * 2;
+  });
+  const debounced = debounce(fn, 100);
+
+  [1, 2, 3].map((value) => debounced(value));
+
+  const flushResult = await debounced.flush();
+  expect(flushResult).toBe(6);
+
+  expect(fn).toHaveBeenCalledTimes(1);
+  expect(fn).toHaveBeenCalledWith(3);
+});
+
+test("isPending method of debounced", async () => {
+  const fn = vi.fn(async (value) => {
+    await delay(50);
+    return value;
+  });
+  const debounced = debounce(fn, 100);
+
+  const promises = [1, 2].map((value) => debounced(value));
+
+  expect(debounced.isPending()).toBe(true);
+  await delay(150);
+  expect(debounced.isPending()).toBe(false);
+  expect(fn).toHaveBeenCalledTimes(1);
+
+  await Promise.all(promises);
 });
 
 // Factory to create a separate class for each test below
@@ -158,11 +203,11 @@ test.concurrent("`this` is preserved ", async () => {
   const FixtureClass = createFixtureClass();
   FixtureClass.prototype.foo = (debounce as any)(
     FixtureClass.prototype.foo,
-    10
+    10,
   );
   FixtureClass.prototype.getThis = (debounce as any)(
     FixtureClass.prototype.getThis,
-    10
+    10,
   );
 
   const thisFixture = new FixtureClass();
@@ -233,7 +278,7 @@ Resolves:  R=1         R=1         R=2        R=2         R=4         R=4
       return value;
     },
     DEBOUNCE_MS,
-    { leading: true }
+    { leading: true },
   );
 
   const promises: Promise<any>[] = [];

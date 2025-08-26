@@ -8,7 +8,7 @@ export interface DebounceOptions {
 
   /**
   Call the `fn` on trailing edge with last used arguments. Result of call is from previous call.
-  @default false
+  @default true
   */
   readonly trailing?: boolean;
 
@@ -18,6 +18,23 @@ export interface DebounceOptions {
    */
   readonly diff?: boolean;
 }
+
+type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
+  ...args: ArgumentsT
+) => Promise<ReturnT>) & {
+  /**
+   * Cancel pending function call
+   */
+  cancel: () => void;
+  /**
+   * Immediately invoke pending function call
+   */
+  flush: () => Promise<ReturnT> | undefined;
+  /**
+   * Get pending function call
+   */
+  isPending: () => boolean;
+};
 
 const DEBOUNCE_DEFAULTS: DebounceOptions = {
   trailing: true,
@@ -36,16 +53,16 @@ const debouncedFn = debounce(expensiveCall, 200);
 for (const number of [1, 2, 3]) {
   console.log(await debouncedFn(number));
 }
-//=> 3
-//=> 3
+//=> 1
+//=> 2
 //=> 3
 ```
 */
 export function debounce<ArgumentsT extends unknown[], ReturnT>(
   fn: (...args: ArgumentsT) => PromiseLike<ReturnT> | ReturnT,
   wait = 25,
-  options: DebounceOptions = {}
-) {
+  options: DebounceOptions = {},
+): DebouncedReturn<ArgumentsT, ReturnT> {
   // Validate options
   options = { ...DEBOUNCE_DEFAULTS, ...options };
   if (!Number.isFinite(wait)) {
@@ -82,11 +99,11 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
     return currentPromise;
   };
 
-  return function (...args: ArgumentsT) {
+  const debounced = function (...args: ArgumentsT) {
+    if (options.trailing) {
+      trailingArgs = args;
+    }
     if (currentPromise) {
-      if (options.trailing) {
-        trailingArgs = args;
-      }
       return currentPromise;
     }
     return new Promise<ReturnT>((resolve) => {
@@ -105,6 +122,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
             const args = argsArray[i];
             const index = findIndex(argsUniqueArray, (item) => isEqual(item, args));
             const promise = promiseArray[index];
+            trailingArgs = null;
             _resolve(promise)
           }
         }
@@ -128,7 +146,34 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
         }
       }
     });
+  } as DebouncedReturn<ArgumentsT, ReturnT>;
+
+  const _clearTimeout = (timer: NodeJS.Timeout) => {
+    if (timer) {
+      clearTimeout(timer);
+      timeout = null;
+    }
   };
+
+  debounced.isPending = () => !!timeout;
+
+  debounced.cancel = () => {
+    _clearTimeout(timeout);
+    resolveList = [];
+    trailingArgs = null;
+  };
+
+  debounced.flush = () => {
+    _clearTimeout(timeout);
+    if (!trailingArgs || currentPromise) {
+      return;
+    }
+    const args = trailingArgs;
+    trailingArgs = null;
+    return applyFn(this, args);
+  };
+
+  return debounced;
 }
 
 async function _applyPromised(fn: () => any, _this: unknown, args: any[]) {
