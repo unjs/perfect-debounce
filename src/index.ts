@@ -128,6 +128,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
         }
         else {
           const promise = options.leading ? leadingValue : applyFn(this, args);
+          trailingArgs = null;
           for (const _resolve of resolveList) {
             _resolve(promise);
           }
