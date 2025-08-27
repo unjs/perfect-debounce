@@ -46,7 +46,6 @@ test.concurrent("multiple calls", async () => {
 
 test.concurrent("multiple calls with option.dirrence = true", async () => {
   let count = 0;
-  const end = timeSpan();
 
   const debounced = debounce(async (value) => {
     count++;
