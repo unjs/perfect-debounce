@@ -8,9 +8,14 @@ export interface DebounceOptions {
 
   /**
   Call the `fn` on trailing edge with last used arguments. Result of call is from previous call.
+
+  When set to `true`, trailing calls only happen when `leading: false`, or when `leading: true` and the async function takes longer than the debounce period.
+
+  When set to `'always'`, trailing calls happen consistently regardless of function execution time when used with `leading: true`.
+
   @default true
   */
-  readonly trailing?: boolean;
+  readonly trailing?: boolean | 'always';
 }
 
 type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
@@ -105,7 +110,19 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
       timeout = setTimeout(() => {
         timeout = null;
         const promise = options.leading ? leadingValue : applyFn(this, args);
-        trailingArgs = null;
+
+        // Handle trailing: 'always' option
+        if (options.leading && options.trailing === 'always') {
+          // Make trailing call if function has completed
+          if (trailingArgs && !currentPromise) {
+            applyFn(this, trailingArgs);
+            trailingArgs = null;
+          }
+          // Otherwise keep trailingArgs for finally block
+        } else {
+          trailingArgs = null;
+        }
+
         for (const _resolve of resolveList) {
           _resolve(promise);
         }
