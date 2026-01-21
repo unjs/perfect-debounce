@@ -13,7 +13,7 @@ export interface DebounceOptions {
   readonly trailing?: boolean;
 }
 
-type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
+export type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
   ...args: ArgumentsT
 ) => Promise<ReturnT>) & {
   /**
