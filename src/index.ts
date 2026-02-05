@@ -60,7 +60,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
   // Validate options
   options = { ...DEBOUNCE_DEFAULTS, ...options };
   if (!Number.isFinite(wait)) {
-    throw new TypeError("Expected `wait` to be a finite number");
+    throw new RangeError("Expected `wait` to be a finite number");
   }
 
   // Last result for leading value
