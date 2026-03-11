@@ -11,6 +11,12 @@ export interface DebounceOptions {
   @default true
   */
   readonly trailing?: boolean;
+
+  /**
+   * Call the `fn` all the way with different arguments. When `diff` is true, `leading` and `trailing` will be ignored.
+   * @default false
+   */
+  readonly diff?: boolean;
 }
 
 export type DebouncedReturn<ArgumentsT extends unknown[], ReturnT> = ((
@@ -78,6 +84,8 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
   // Trailing call info
   let trailingArgs: any[];
 
+  let argsArray: ArgumentsT[] = [];
+
   const applyFn = (_this, args) => {
     currentPromise = _applyPromised(fn, _this, args);
     currentPromise.finally(() => {
@@ -104,11 +112,28 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         timeout = null;
-        const promise = options.leading ? leadingValue : applyFn(this, args);
-        trailingArgs = null;
-        for (const _resolve of resolveList) {
-          _resolve(promise);
+        if (options.diff) {
+          const argsUniqueArray = uniq(argsArray);
+          const promiseArray: Record<number,Promise<ReturnT>> = {};
+          for (const [i, args] of argsUniqueArray.entries()) {
+            promiseArray[i] = applyFn(this, args);
+          }
+          for (const [i, _resolve] of resolveList.entries()) {
+            const args = argsArray[i];
+            const index = findIndex(argsUniqueArray, (item) => isEqual(item, args));
+            const promise = promiseArray[index];
+            trailingArgs = null;
+            _resolve(promise)
+          }
         }
+        else {
+          const promise = options.leading ? leadingValue : applyFn(this, args);
+          trailingArgs = null;
+          for (const _resolve of resolveList) {
+            _resolve(promise);
+          }
+        }
+        argsArray = []
         resolveList = [];
       }, wait);
 
@@ -117,6 +142,9 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
         resolve(leadingValue);
       } else {
         resolveList.push(resolve);
+        if (options.diff) {
+          argsArray.push(args);
+        }
       }
     });
   } as DebouncedReturn<ArgumentsT, ReturnT>;
@@ -151,4 +179,46 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
 
 async function _applyPromised(fn: () => any, _this: unknown, args: any[]) {
   return await fn.apply(_this, args);
+}
+
+export function uniq(arr: any[]) {
+  const newArr = [];
+  for (const item of arr) {
+    if (Array.isArray(item)) {
+      if (!newArr.some((newItem) => isEqual(newItem, item))) {
+        newArr.push(item);
+      }
+    } else if (!newArr.includes(item)) {
+        newArr.push(item);
+      }
+  }
+  return newArr;
+}
+
+function findIndex(arr: any[], predicate: (item: any) => boolean): number {
+  for (const [i, element] of arr.entries()) {
+    if (predicate(element)) { return i; }
+  }
+  return -1;
+}
+
+function isEqual(a: any, b: any): boolean {
+  if (a === b) { return true; }
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) { return false; }
+    for (const [i, element] of a.entries()) {
+      if (!isEqual(element, b[i])) { return false; }
+    }
+    return true;
+  }
+  if (typeof a === 'object' && typeof b === 'object' && a && b) {
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    if (keysA.length !== keysB.length) { return false; }
+    for (const key of keysA) {
+      if (!isEqual(a[key], b[key])) { return false; }
+    }
+    return true;
+  }
+  return false;
 }
