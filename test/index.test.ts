@@ -275,3 +275,59 @@ Resolves:  R=1         R=1         R=2        R=2         R=4         R=4
   expect(results[0]).toBe(1);
   expect(results[3]).toBe(6);
 });
+
+test.concurrent("leading and trailing: 'always' with slow async function", async () => {
+  let count = 0;
+
+  const debounced = debounce(
+    async (value) => {
+      count++;
+      await delay(100); // Function takes longer than debounce period
+      return value;
+    },
+    50, // Debounce period
+    { leading: true, trailing: 'always' },
+  );
+
+  // Make rapid calls
+  debounced(1);
+  debounced(2);
+  debounced(3);
+
+  // Leading call should execute immediately
+  expect(count).toBe(1);
+
+  // Wait for leading call to finish and trailing call to execute
+  await delay(250);
+
+  // Both leading (with value 1) and trailing (with value 3) should have executed
+  expect(count).toBe(2);
+});
+
+test.concurrent("leading and trailing: 'always' with fast async function", async () => {
+  let count = 0;
+
+  const debounced = debounce(
+    async (value) => {
+      count++;
+      await delay(20); // Function completes faster than debounce period
+      return value;
+    },
+    50, // Debounce period
+    { leading: true, trailing: 'always' },
+  );
+
+  // Make rapid calls
+  debounced(1);
+  debounced(2);
+  debounced(3);
+
+  // Leading call should execute immediately
+  expect(count).toBe(1);
+
+  // Wait for debounce period and trailing call to execute
+  await delay(100);
+
+  // Both leading (with value 1) and trailing (with value 3) should have executed
+  expect(count).toBe(2);
+});
