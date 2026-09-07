@@ -6,6 +6,13 @@ import { debounce } from "../src";
 
 const fixture = "fixture";
 
+// Guards against a promise that never settles: without it a stranded call
+// would hang the test until vitest's timeout rather than failing on the spot.
+const rejectAfter = async (ms: number) => {
+  await delay(ms);
+  throw new Error(`promise did not settle within ${ms}ms`);
+};
+
 test.concurrent("single call", async () => {
   const debounced = debounce(async (value) => value, 100);
   expect(await debounced(fixture)).toBe(fixture);
@@ -134,6 +141,35 @@ test("flush method of debounced with immediate call", async () => {
 
   expect(fn).toHaveBeenCalledTimes(1);
   expect(fn).toHaveBeenCalledWith(3);
+});
+
+test("flush resolves the promises of the calls it flushes", async () => {
+  const fn = vi.fn(async (value: number) => {
+    await delay(50);
+    return value * 2;
+  });
+  const debounced = debounce(fn, 100);
+
+  const promises = [1, 2, 3].map((value) => debounced(value));
+
+  await debounced.flush();
+
+  await expect(
+    Promise.race([Promise.all(promises), rejectAfter(300)]),
+  ).resolves.toMatchObject([6, 6, 6]);
+  expect(fn).toHaveBeenCalledTimes(1);
+});
+
+test("flush does not strand pending calls when there is nothing to flush", async () => {
+  const fn = vi.fn(async (value: number) => value * 2);
+  const debounced = debounce(fn, 100, { trailing: false });
+
+  const promise = debounced(1);
+
+  expect(debounced.flush()).toBeUndefined();
+
+  await expect(Promise.race([promise, rejectAfter(300)])).resolves.toBe(2);
+  expect(fn).toHaveBeenCalledTimes(1);
 });
 
 test("isPending method of debounced", async () => {
