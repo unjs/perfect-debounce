@@ -137,13 +137,22 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
   };
 
   debounced.flush = () => {
-    _clearTimeout(timeout);
     if (!trailingArgs || currentPromise) {
+      // Nothing to flush — leave the pending timeout alone so the calls
+      // already waiting on it still resolve on schedule.
       return;
     }
+    _clearTimeout(timeout);
     const args = trailingArgs;
     trailingArgs = null;
-    return applyFn(this, args);
+    const promise = applyFn(this, args);
+    // The timeout that would have resolved these is gone, so hand them the
+    // flushed call's result instead of leaving them pending forever.
+    for (const _resolve of resolveList) {
+      _resolve(promise);
+    }
+    resolveList = [];
+    return promise;
   };
 
   return debounced;
