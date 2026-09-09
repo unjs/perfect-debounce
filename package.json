@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.4.0",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^5.0.0",
     "automd": "^0.4.3",
     "changelogen": "^0.6.2",
     "eslint": "^9.39.4",
