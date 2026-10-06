@@ -76,15 +76,15 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
   let currentPromise: Promise<ReturnT>;
 
   // Trailing call info
-  let trailingArgs: any[];
+  let trailingCall: { args: ArgumentsT; receiver: unknown };
 
   const applyFn = (_this, args) => {
     currentPromise = _applyPromised(fn, _this, args);
     currentPromise.finally(() => {
       currentPromise = null;
-      if (options.trailing && trailingArgs && !timeout) {
-        const promise = applyFn(_this, trailingArgs);
-        trailingArgs = null;
+      if (options.trailing && trailingCall && !timeout) {
+        const promise = applyFn(trailingCall.receiver, trailingCall.args);
+        trailingCall = null;
         return promise;
       }
     });
@@ -93,7 +93,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
 
   const debounced = function (...args: ArgumentsT) {
     if (options.trailing) {
-      trailingArgs = args;
+      trailingCall = { args, receiver: this };
     }
     if (currentPromise) {
       return currentPromise;
@@ -105,7 +105,7 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
       timeout = setTimeout(() => {
         timeout = null;
         const promise = options.leading ? leadingValue : applyFn(this, args);
-        trailingArgs = null;
+        trailingCall = null;
         for (const _resolve of resolveList) {
           _resolve(promise);
         }
@@ -133,17 +133,17 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
   debounced.cancel = () => {
     _clearTimeout(timeout);
     resolveList = [];
-    trailingArgs = null;
+    trailingCall = null;
   };
 
   debounced.flush = () => {
     _clearTimeout(timeout);
-    if (!trailingArgs || currentPromise) {
+    if (!trailingCall || currentPromise) {
       return;
     }
-    const args = trailingArgs;
-    trailingArgs = null;
-    return applyFn(this, args);
+    const { args, receiver } = trailingCall;
+    trailingCall = null;
+    return applyFn(receiver, args);
   };
 
   return debounced;

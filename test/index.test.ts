@@ -275,3 +275,41 @@ Resolves:  R=1         R=1         R=2        R=2         R=4         R=4
   expect(results[0]).toBe(1);
   expect(results[3]).toBe(6);
 });
+
+test("flush preserves the last call receiver", async () => {
+  const debounced = debounce(function () {
+    return this;
+  }, 100);
+  const first = { debounced };
+  const last = { debounced };
+  first.debounced();
+  last.debounced();
+  expect(await debounced.flush()).toBe(last);
+});
+
+test("a queued trailing call uses its own receiver", async () => {
+  let finishFirst!: () => void;
+  const firstResult = new Promise<void>((resolve) => {
+    finishFirst = resolve;
+  });
+  let finishTrailing!: () => void;
+  const trailingResult = new Promise<void>((resolve) => {
+    finishTrailing = resolve;
+  });
+  const receivers: unknown[] = [];
+  const debounced = debounce(function () {
+    receivers.push(this);
+    if (receivers.length === 1) return firstResult;
+    finishTrailing();
+  }, 1);
+  const first = { debounced };
+  const last = { debounced };
+  const firstCall = first.debounced();
+  await delay(10);
+  const nextCall = last.debounced();
+  finishFirst();
+  await Promise.all([firstCall, nextCall, trailingResult]);
+  expect(receivers).toHaveLength(2);
+  expect(receivers[0]).toBe(first);
+  expect(receivers[1]).toBe(last);
+});
