@@ -80,14 +80,16 @@ export function debounce<ArgumentsT extends unknown[], ReturnT>(
 
   const applyFn = (_this, args) => {
     currentPromise = _applyPromised(fn, _this, args);
-    currentPromise.finally(() => {
-      currentPromise = null;
-      if (options.trailing && trailingArgs && !timeout) {
-        const promise = applyFn(_this, trailingArgs);
-        trailingArgs = null;
-        return promise;
-      }
-    });
+    currentPromise
+      .finally(() => {
+        currentPromise = null;
+        if (options.trailing && trailingArgs && !timeout) {
+          const promise = applyFn(_this, trailingArgs);
+          trailingArgs = null;
+          return promise;
+        }
+      })
+      .catch(() => {});
     return currentPromise;
   };
 

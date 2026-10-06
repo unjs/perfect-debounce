@@ -275,3 +275,18 @@ Resolves:  R=1         R=1         R=2        R=2         R=4         R=4
   expect(results[0]).toBe(1);
   expect(results[3]).toBe(6);
 });
+
+test("handled callback rejection does not become an unhandled rejection", async () => {
+  const error = new Error("callback failed");
+  const unhandled: unknown[] = [];
+  const onUnhandled = (reason: unknown) => unhandled.push(reason);
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    const debounced = debounce(() => Promise.reject(error), 1);
+    await expect(debounced()).rejects.toBe(error);
+    await delay(10);
+    expect(unhandled).toEqual([]);
+  } finally {
+    process.off("unhandledRejection", onUnhandled);
+  }
+});
