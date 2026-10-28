@@ -24,7 +24,7 @@
     "test": "vitest run --coverage"
   },
   "devDependencies": {
-    "@types/node": "^25.4.0",
+    "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^4.0.18",
     "automd": "^0.4.3",
     "changelogen": "^0.6.2",
